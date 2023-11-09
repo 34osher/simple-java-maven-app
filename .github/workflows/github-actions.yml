@@ -9,6 +9,8 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    if: github.event.pull_request.user.login == 'dependabot-preview[bot]' || github.event.pull_request.user.login == 'dependabot[bot]'
+
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -37,10 +39,16 @@ jobs:
           jar_version=$(grep -o '<version>.*</version>' pom.xml | head -n1 | sed 's/<[^>]*>//g')
           echo "JAR version: $jar_version"      
 
-      - name: Increment JAR version
-        id: increment-jar-version
-        run: |
-          sed -i "s/<version>$jar_version<\/version>/<version>$(($jar_version + 0.0.1))<\/version>/g" pom.xml
+      - name: Uses POM Version Bump
+        uses: wlicamele-bw/pom-version-bump@v1.0
+        id: bump
+        with:
+          bumpVersionType: bump
+          bumpVersion: patch
+          bumpChangelog: true
+          changelogDesc: ${{ github.event.pull_request.title }}
+      - name: Get the version number
+        run: echo "The Version Number is ${{ steps.bump.outputs.versionNumber }}"
      
       - name: List files in the repository
         run: |
