@@ -34,9 +34,20 @@ jobs:
         run: | 
           echo "---Building images and starting up docker---"
           echo "## The ${{ github.ref }} lllllllll"    
-          docker build -t ${{  secrets.USER_DOCKERHUB  }}/hello:latest .
-          docker images
+          docker build -t ${{  github.repository }}:latest .
 
+      - name: set the new patch version
+        run: |
+          VERSION=$(echo version.txt)
+          echo " $VERSION "
+
+      - name: continue delivery 
+        run: | 
+          docker login -u ${{ secrets.USER_DOCKERHUB }}-p ${{ secrets.PASS_DOCKERHUB }}
+          docker tag ${{  github.repository }}:${{ VERSION }}
+
+          docker push ${{  github.repository }}:${{ VERSION }}
+          docker push 34osher/weather_app:latest
 
 
     #  - name: package to docker image
