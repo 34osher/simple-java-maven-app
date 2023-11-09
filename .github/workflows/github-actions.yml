@@ -30,7 +30,18 @@ jobs:
 
       - name: Run tests
         run: mvn test
-            
+
+      - name: Extract JAR version
+        id: extract-jar-version
+        run: |
+          jar_version=$(xml --get "//project/version" pom.xml)
+          echo "JAR version: $jar_version"      
+
+      - name: Increment JAR version
+        id: increment-jar-version
+        run: |
+          sed -i "s/<version>$jar_version<\/version>/<version>$(($jar_version + 0.0.1))<\/version>/g" pom.xml
+     
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
