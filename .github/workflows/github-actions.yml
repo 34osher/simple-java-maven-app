@@ -31,18 +31,12 @@ jobs:
       - name: Run tests
         run: mvn test
 
+
       - name: Extract JAR version
         id: extract-jar-version
         run: |
           jar_version=$(grep -o '<version>.*</version>' pom.xml | head -n1 | sed 's/<[^>]*>//g')
           echo "JAR version: $jar_version"      
-
-     - name: Bump version
-        id: bump
-        uses: mickem/gh-action-bump-maven-version
-      - name: Deploy project
-        if: steps.bump.outputs.bumped == false
-        run: mvn deploy
      
       - name: List files in the repository
         run: |
