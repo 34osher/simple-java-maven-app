@@ -28,6 +28,11 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
 
+      - name: Install xml tool
+        id: install-xml-tool
+        run: |
+          sudo apt-get install xml2
+
       - name: Run tests
         run: mvn test
 
