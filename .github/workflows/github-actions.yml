@@ -33,7 +33,7 @@ jobs:
       - name: Build docker images
         run: | 
           echo ---Building images and starting up docker---
-          docker build -f ${{ github.repository }}.Dockerfile -t hello_app:latest .
+          docker build -t hello_app:latest .
 
     #  - name: package to docker image
      #   runs:
