@@ -33,7 +33,7 @@ jobs:
       - name: Build docker images
         run: | 
           echo "---Building images and starting up docker---"
-        run: echo "## The ${{ github.action_repository }} lllllllll"    
+          echo "## The ${{ github.action_repository }} lllllllll"    
           docker build -t ${{secret.USER_DOCKERHUB}} /hello:latest .
           docker images
 
