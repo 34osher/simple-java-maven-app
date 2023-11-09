@@ -1,8 +1,9 @@
 name: GitHub Actions simple project
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: 
   push:
     branches: [ master ]
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches: [ master ]
 jobs:
@@ -15,8 +16,6 @@ jobs:
 
       - name: Check out repository code
         uses: actions/checkout@v2
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
 
       - name: Set up Java
         uses: actions/setup-java@v2
@@ -30,19 +29,29 @@ jobs:
       - name: Run tests
         run: mvn test
 
+      - name: Increment patch version
+        id: increment_version
+        run: |
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF++;print}')
+          echo "New version: $NEW_VERSION"
+          mvn versions:set -DnewVersion=$NEW_VERSION
+          mvn versions:commit
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Commit and push version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pom.xml
+          git commit -m "Increment version to $NEW_VERSION [skip ci]"
+          git push origin HEAD:master
+
       - name: Build docker images
         run: | 
           echo "---Building images and starting up docker---"
-          echo "## The ${{ github.ref }} lllllllll"    
           docker build -t hello_app:latest .
-
-      - name: set the new patch version
-        run: |
-          old_version=$(cat version.txt)
-          echo "the old version $old_version "
-          new_version=$(echo $old_version | awk -F. '{$NF = $NF + 1} 1' | sed 's/ /./g')
-          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV   
-          echo "the new version $new_version "
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -50,31 +59,18 @@ jobs:
           username: ${{ secrets.USER_DOCKERHUB }}
           password: ${{ secrets.PASS_DOCKERHUB }}
 
-      - name: continue delivery 
+      - name: Continue delivery 
         run: | 
           echo "The new version is ${{ env.NEW_VERSION }}"
           docker tag hello_app:latest 34osher/hello_app:latest
           docker push 34osher/hello_app:latest
-          
           docker tag hello_app:latest 34osher/hello_app:${{ env.NEW_VERSION }}
-          docker push 34osher/hello_app:${{ env.NEW_VERSION}}
+          docker push 34osher/hello_app:${{ env.NEW_VERSION }}
           docker images
 
-
-    #  - name: package to docker image
-     #   runs:
-      #    using: 'docker'
-       #   image: 'Dockerfile'   
-
-      #- name: Extract JAR version
-       # id: extract-jar-version
-        #run: |
-         # jar_version=$(grep -o '<version>.*</version>' pom.xml | head -n1 | sed 's/<[^>]*>//g')
-          #echo "JAR version: $jar_version"    
-            
-     
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
+
 
