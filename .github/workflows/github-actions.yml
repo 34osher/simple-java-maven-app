@@ -6,9 +6,8 @@ on:
   pull_request:
     branches: [ master ]
 jobs:
-  build-and-test:
+  build-and-test-maven:
     runs-on: ubuntu-latest
-
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -31,25 +30,24 @@ jobs:
       - name: Run tests
         run: mvn test
 
+      - name: Build docker images
+        Id: build-image
+        run: | 
+          echo ---Building images and starting up docker---
+          docker build -t hello_app .
 
-      - name: Extract JAR version
-        id: extract-jar-version
-        run: |
-          jar_version=$(grep -o '<version>.*</version>' pom.xml | head -n1 | sed 's/<[^>]*>//g')
-          echo "JAR version: $jar_version"    
-      
-      - name: Bump version
-        id: bump
-        uses: mickem/gh-action-bump-maven-version
-      - name: Deploy project
-        if: steps.bump.outputs.bumped == false
-        run: mvn deploy      
+    #  - name: package to docker image
+     #   runs:
+      #    using: 'docker'
+       #   image: 'Dockerfile'   
+          
+      #- name: Extract JAR version
+       # id: extract-jar-version
+        #run: |
+         # jar_version=$(grep -o '<version>.*</version>' pom.xml | head -n1 | sed 's/<[^>]*>//g')
+          #echo "JAR version: $jar_version"    
+            
      
-      - uses:  'mickem/gh-action-bump-maven-version'
-        with:
-          bump-command: mvn org.codehaus.mojo:versions-maven-plugin:2.7:set-property -Dproperty=revision -DnewVersion=@NEW_VERSION@
-
-
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
