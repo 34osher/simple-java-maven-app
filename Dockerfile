@@ -8,5 +8,5 @@ RUN mvn -B -DskipTests clean package
 # Use a slim Java image to run the application
 FROM openjdk:11-jre-slim
 WORKDIR /src
-COPY --from=build /app/target/*.jar /app/my-app.jar
+COPY --from=build /src/target/*.jar /src/my-app.jar
 CMD ["java", "-jar", "my-app.jar"]
