@@ -38,15 +38,21 @@ jobs:
 
       - name: set the new patch version
         run: |
-          VERSION=$(echo version.txt)
-          echo " $VERSION "
+          old_version=$(echo version.txt)
+          echo " $old_version "
 
+      - name: set the new version
+        run: |
+          new_version=$(echo $base_version | awk -F. '{$NF = $NF + 1} 1' | sed 's/ /./g')
+          echo "NEW_VERSION=$new_version" >> $GITHUB_ENV   
+          echo "The new version is ${{ env.NEW_VERSION }}"
+          
       - name: continue delivery 
         run: | 
           docker login -u ${{ secrets.USER_DOCKERHUB }}-p ${{ secrets.PASS_DOCKERHUB }}
-          docker tag ${{  github.repository }}:${{ VERSION }}
+          docker tag ${{  github.repository }}:${{ env.NEW_VERSION }}
 
-          docker push ${{  github.repository }}:${{ VERSION }}
+          docker push ${{  github.repository }}:${{ env.NEW_VERSION}}
           docker push 34osher/weather_app:latest
 
 
